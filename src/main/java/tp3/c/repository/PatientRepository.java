@@ -9,5 +9,5 @@ import tp3.c.entites.Patient;
 
 public interface PatientRepository  extends JpaRepository<Patient ,Long> {
 
-    Page<Patient> findByNomContains(String keyword, Pageable pageable);
+    Page<Patient> findByNameContains(String keyword, Pageable pageable);
 }

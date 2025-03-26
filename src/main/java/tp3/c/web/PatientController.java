@@ -22,11 +22,18 @@ public class PatientController {
                         @RequestParam(defaultValue = "10") int pageSize,
                         @RequestParam(defaultValue = "") String keyword)
     {
-        Page<Patient> patientPage = patientRepository.findByNomContains(keyword, PageRequest.of(page, pageSize));
+        Page<Patient> patientPage = patientRepository.findByNameContains(keyword, PageRequest.of(page, pageSize));
         model.addAttribute("patients", patientPage.getContent());
         model.addAttribute("currentPage", page);
         model.addAttribute("totalPages", patientPage.getTotalPages());
         model.addAttribute("totalPatients", patientPage.getTotalElements());
+        model.addAttribute("keyword", keyword);
         return "patients";
     }
+    @GetMapping("/delete")
+    public String delete(Long id) {
+        patientRepository.deleteById(id);
+        return "redirect:/patients";
+    }
+
 }
