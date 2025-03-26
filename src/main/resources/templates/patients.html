@@ -30,7 +30,7 @@
         <td th:text="${#dates.format(patient.dateDeNaissance, 'yyyy-MM-dd')}"></td>
         <td th:text="${patient.malade ? 'Oui' : 'Non'}"></td>
         <td th:text="${patient.score}"></td>
-        <td><a th:href="@{delete(id=${patient.id })}" class="btn btn-danger">Delete</a></td>
+        <td><a  onclick="javascript:return confirm('Vraiment Supprimer')" th:href="@{delete(id=${patient.id },keyword=${keyword}, page =${currentPage})}" class="btn btn-danger">Delete</a></td>
     </tr>
     </tbody>
 </table>
