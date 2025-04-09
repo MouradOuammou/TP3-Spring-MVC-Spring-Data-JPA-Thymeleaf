@@ -1,41 +1,85 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org"
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
       xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
       layout:decorate="template.html">
 <head>
     <meta charset="UTF-8">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <title>Gestion des Patients</title>
+
+    <!-- Styles personnalisés -->
+    <style>
+        .card-header {
+            background-color: #007bff;
+            color: white;
+            font-size: 1.2rem;
+        }
+        .table-hover tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        .badge-danger {
+            background-color: #dc3545;
+        }
+        .badge-success {
+            background-color: #28a745;
+        }
+        .pagination .page-item.active .page-link {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+        body.dark-mode {
+            background-color: #121212;
+            color: #e0e0e0;
+        }
+        body.dark-mode .card {
+            background-color: #1e1e1e;
+            border-color: #333;
+        }
+        body.dark-mode .btn-primary {
+            background-color: #1a73e8;
+            border-color: #1a73e8;
+        }
+    </style>
 </head>
 <body>
 <div layout:fragment="content">
     <div class="p-3">
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
+        <div class="card shadow">
+            <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
                 <h5 class="mb-0">Liste des patients</h5>
-                <a th:href="@{/formPatient}" class="btn btn-primary">
-                    <i class="bi bi-plus-circle"></i> Nouveau Patient
-                </a>
+                <div class="d-flex gap-2">
+                    <a th:href="@{/formPatient}" class="btn btn-light">
+                        <i class="bi bi-plus-circle"></i> Nouveau Patient
+                    </a>
+                    <button id="toggle-dark-mode" class="btn btn-outline-light">
+                        <i class="bi bi-moon-fill"></i> Mode Sombre
+                    </button>
+                </div>
             </div>
             <div class="card-body">
+                <!-- Barre de recherche -->
                 <form method="get" th:action="@{index}" class="mb-4">
                     <div class="input-group">
-                        <input type="text" class="form-control" name="keyword" th:value="${keyword}" placeholder="Rechercher...">
+                        <input type="text" class="form-control" name="keyword" th:value="${keyword}"
+                               placeholder="Rechercher..." aria-label="Rechercher un patient">
                         <button class="btn btn-info" type="submit">
-                            <i class="bi bi-search"></i>
+                            <i class="bi bi-search" aria-hidden="true"></i> Rechercher
                         </button>
                     </div>
                 </form>
 
+                <!-- Tableau des patients -->
                 <div class="table-responsive">
                     <table class="table table-striped table-hover">
                         <thead class="table-light">
                         <tr>
-                            <th>ID</th>
-                            <th>Nom</th>
-                            <th>Date de Naissance</th>
-                            <th>Score</th>
-                            <th>Malade</th>
-                            <th colspan="2">Actions</th>
+                            <th scope="col">ID</th>
+                            <th scope="col">Nom</th>
+                            <th scope="col">Date de Naissance</th>
+                            <th scope="col">Score</th>
+                            <th scope="col">Malade</th>
+                            <th scope="col" colspan="2">Actions</th>
                         </tr>
                         </thead>
                         <tbody>
@@ -49,15 +93,16 @@
                                 <span th:unless="${p.malade}" class="badge bg-success">Non</span>
                             </td>
                             <td>
-                                <a class="btn btn-sm btn-primary" th:href="@{editPatient(id=${p.id})}">
-                                    <i class="bi bi-pencil"></i> Modifier
+                                <a class="btn btn-sm btn-primary" th:href="@{editPatient(id=${p.id})}" title="Modifier">
+                                    <i class="bi bi-pencil" aria-hidden="true"></i>
                                 </a>
                             </td>
                             <td>
-                                <a class="btn btn-sm btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce patient?')"
-                                   th:href="@{deletePatient(id=${p.id}, keyword=${keyword}, page=${currentPage})}">
-                                    <i class="bi bi-trash"></i> Supprimer
-                                </a>
+                                <button class="btn btn-sm btn-danger" data-bs-toggle="modal"
+                                        th:data-id="${p.id}" th:data-keyword="${keyword}" th:data-page="${currentPage}"
+                                        data-bs-target="#deleteModal" title="Supprimer">
+                                    <i class="bi bi-trash" aria-hidden="true"></i>
+                                </button>
                             </td>
                         </tr>
                         <tr th:if="${listPatients.isEmpty()}">
@@ -71,19 +116,66 @@
                 <nav th:if="${totalPages > 1}">
                     <ul class="pagination justify-content-center">
                         <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled' : ''">
-                            <a class="page-link" th:href="@{index(page=${currentPage-1}, keyword=${keyword})}">&laquo;</a>
+                            <a class="page-link" th:href="@{index(page=${currentPage - 1}, keyword=${keyword})}" aria-label="Page précédente">
+                                &laquo;
+                            </a>
                         </li>
                         <li class="page-item" th:each="page : ${pages}" th:classappend="${page == currentPage} ? 'active' : ''">
                             <a class="page-link" th:href="@{index(page=${page}, keyword=${keyword})}" th:text="${page + 1}"></a>
                         </li>
                         <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled' : ''">
-                            <a class="page-link" th:href="@{index(page=${currentPage+1}, keyword=${keyword})}">&raquo;</a>
+                            <a class="page-link" th:href="@{index(page=${currentPage + 1}, keyword=${keyword})}" aria-label="Page suivante">
+                                &raquo;
+                            </a>
                         </li>
                     </ul>
                 </nav>
             </div>
         </div>
     </div>
+
+    <!-- Modal de confirmation de suppression -->
+    <div class="modal fade" id="deleteModal" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteModalLabel">Confirmation de suppression</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fermer"></button>
+                </div>
+                <div class="modal-body">
+                    Êtes-vous sûr de vouloir supprimer ce patient ?
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                    <a id="confirmDelete" class="btn btn-danger">Supprimer</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script pour le mode sombre et la modal -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        (() => {
+            // Mode sombre
+            const toggleDarkMode = document.getElementById('toggle-dark-mode');
+            const body = document.body;
+            toggleDarkMode.addEventListener('click', () => {
+                body.classList.toggle('dark-mode');
+            });
+
+            // Confirmation de suppression
+            const deleteModal = document.getElementById('deleteModal');
+            const confirmDeleteBtn = document.getElementById('confirmDelete');
+            deleteModal.addEventListener('show.bs.modal', (event) => {
+                const button = event.relatedTarget;
+                const id = button.getAttribute('data-id');
+                const keyword = button.getAttribute('data-keyword');
+                const page = button.getAttribute('data-page');
+                confirmDeleteBtn.href = `/deletePatient?id=${id}&keyword=${keyword}&page=${page}`;
+            });
+        })();
+    </script>
 </div>
 </body>
 </html>

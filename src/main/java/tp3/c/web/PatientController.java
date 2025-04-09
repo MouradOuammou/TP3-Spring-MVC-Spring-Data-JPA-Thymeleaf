@@ -27,10 +27,9 @@ public class PatientController {
     {
         Page<Patient> patientPage = patientRepository.findByNomContains(keyword, PageRequest.of(page, pageSize));
         model.addAttribute("patients", patientPage.getContent());
-        model.addAttribute("currentPage", page);
-        model.addAttribute("totalPages", patientPage.getTotalPages());
-        model.addAttribute("totalPatients", patientPage.getTotalElements());
-        model.addAttribute("keyword", keyword);
+        model.addAttribute("pages",new int[patientPage.getTotalPages()]);
+        model.addAttribute("currentPage",page);
+        model.addAttribute("keyword",keyword);
         return "patients";
     }
     @GetMapping("/delete" )

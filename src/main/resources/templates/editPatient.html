@@ -1,10 +1,164 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{template}">
 <head>
-    <meta charset="UTF-8">
-    <title>Title</title>
+  <meta charset="UTF-8">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title th:text="${patient.id != null} ? 'Modifier Patient' : 'Nouveau Patient'">Gestion Patient</title>
+
+  <!-- Styles personnalisés -->
+  <style>
+    .card-header {
+      background-color: #007bff;
+      color: white;
+      font-size: 1.2rem;
+    }
+    .form-label {
+      font-weight: bold;
+    }
+    .invalid-feedback {
+      font-size: 0.9rem;
+      color: #dc3545;
+    }
+    .progress-container {
+      margin-top: 1rem;
+    }
+    .progress-bar {
+      transition: width 0.3s ease;
+    }
+    body.dark-mode {
+      background-color: #121212;
+      color: #e0e0e0;
+    }
+    body.dark-mode .card {
+      background-color: #1e1e1e;
+      border-color: #333;
+    }
+    body.dark-mode .btn-primary {
+      background-color: #1a73e8;
+      border-color: #1a73e8;
+    }
+  </style>
 </head>
 <body>
+<div layout:fragment="content">
+  <div class="container mt-4">
+    <div class="card shadow">
+      <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+        <h2 class="h4 mb-0" th:text="${patient.id != null} ? 'Modifier Patient' : 'Nouveau Patient'">
+          Formulaire Patient
+        </h2>
+        <button id="toggle-dark-mode" class="btn btn-sm btn-outline-light">
+          <i class="bi bi-moon-fill"></i> Mode Sombre
+        </button>
+      </div>
 
+      <div class="card-body">
+        <form method="post" th:action="@{/savePatient}" th:object="${patient}" class="needs-validation" novalidate>
+          <!-- Champ ID caché -->
+          <input type="hidden" th:field="*{id}">
+
+          <div class="row g-3">
+            <!-- Nom -->
+            <div class="col-md-6">
+              <label for="nom" class="form-label">Nom <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" id="nom" th:field="*{nom}"
+                     placeholder="Entrez le nom" required>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('nom')}" th:errors="*{nom}">
+                Veuillez saisir un nom valide.
+              </div>
+            </div>
+
+            <!-- Date de Naissance -->
+            <div class="col-md-6">
+              <label for="dateNaissance" class="form-label">Date de Naissance <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" id="dateNaissance" th:field="*{dateNaissance}"
+                     required max="th:max=${T(java.time.LocalDate).now().toString()}">
+              <div class="invalid-feedback">
+                Veuillez saisir une date valide.
+              </div>
+            </div>
+
+            <!-- Score -->
+            <div class="col-md-6">
+              <label for="score" class="form-label">Score <span class="text-danger">*</span></label>
+              <input type="number" class="form-control" id="score" th:field="*{score}"
+                     placeholder="Score entre 0 et 100" min="0" max="100" required>
+              <div class="progress-container">
+                <div class="progress">
+                  <div class="progress-bar" role="progressbar" style="width: 0%"
+                       aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                </div>
+              </div>
+              <div class="invalid-feedback" th:if="${#fields.hasErrors('score')}" th:errors="*{score}">
+                Le score doit être entre 0 et 100.
+              </div>
+            </div>
+
+            <!-- Statut Malade -->
+            <div class="col-md-6 d-flex align-items-end">
+              <div class="form-check form-switch">
+                <input class="form-check-input" type="checkbox" id="malade" th:field="*{malade}" role="switch">
+                <label class="form-check-label" for="malade">Patient malade</label>
+              </div>
+            </div>
+          </div>
+
+          <hr class="my-4">
+
+          <div class="d-flex justify-content-between">
+            <a th:href="@{/patients}" class="btn btn-outline-secondary">
+              <i class="bi bi-arrow-left"></i> Retour
+            </a>
+            <button type="submit" class="btn btn-primary">
+              <i class="bi bi-save"></i> <span th:text="${patient.id != null} ? 'Mettre à jour' : 'Enregistrer'"></span>
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- Validation côté client -->
+  <script>
+    (() => {
+      'use strict'
+
+      const forms = document.querySelectorAll('.needs-validation')
+
+      Array.from(forms).forEach(form => {
+        form.addEventListener('submit', event => {
+          if (!form.checkValidity()) {
+            event.preventDefault()
+            event.stopPropagation()
+          }
+
+          form.classList.add('was-validated')
+        }, false)
+      })
+
+      // Mise à jour de la barre de progression pour le score
+      const scoreInput = document.getElementById('score')
+      const progressBar = document.querySelector('.progress-bar')
+      if (scoreInput && progressBar) {
+        scoreInput.addEventListener('input', () => {
+          const value = scoreInput.value
+          progressBar.style.width = `${value}%`
+          progressBar.setAttribute('aria-valuenow', value)
+        })
+      }
+
+      // Mode sombre
+      const toggleDarkMode = document.getElementById('toggle-dark-mode')
+      const body = document.body
+      toggleDarkMode.addEventListener('click', () => {
+        body.classList.toggle('dark-mode')
+      })
+    })()
+  </script>
+</div>
 </body>
 </html>
