@@ -1,51 +1,89 @@
 <!DOCTYPE html>
-<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<html lang="en" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="template.html">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Liste des Patients</title>
-    <link rel="stylesheet" th:href="@{/webjars/bootstrap/5.3.3/css/bootstrap.min.css}">
+    <title>Gestion des Patients</title>
 </head>
-<body class="container">
-<h2 class="my-4">Liste des Patients</h2>
-<form th:action="@{/index}"  method="get">
-    <label >Mot</label>
-    <input type="text"  th:text="${keyword}">
-    <button type="submit" class="btn btn-info">Chercher</button>
-</form>
-<table class="table table-striped table-bordered">
-    <thead>
-    <tr>
-        <th>ID</th>
-        <th>Nom</th>
-        <th>Date de Naissance</th>
-        <th>Malade</th>
-        <th>Score</th>
-    </tr>
-    </thead>
-    <tbody>
-    <tr th:each="patient : ${patients}">
-        <td th:text="${patient.id}"></td>
-        <td th:text="${patient.name}"></td>
-        <td th:text="${#dates.format(patient.dateDeNaissance, 'yyyy-MM-dd')}"></td>
-        <td th:text="${patient.malade ? 'Oui' : 'Non'}"></td>
-        <td th:text="${patient.score}"></td>
-        <td><a  onclick="javascript:return confirm('Vraiment Supprimer')" th:href="@{delete(id=${patient.id },keyword=${keyword}, page =${currentPage})}" class="btn btn-danger">Delete</a></td>
-    </tr>
-    </tbody>
-</table>
+<body>
+<div layout:fragment="content">
+    <div class="p-3">
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <h5 class="mb-0">Liste des patients</h5>
+                <a th:href="@{/formPatient}" class="btn btn-primary">
+                    <i class="bi bi-plus-circle"></i> Nouveau Patient
+                </a>
+            </div>
+            <div class="card-body">
+                <form method="get" th:action="@{index}" class="mb-4">
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="keyword" th:value="${keyword}" placeholder="Rechercher...">
+                        <button class="btn btn-info" type="submit">
+                            <i class="bi bi-search"></i>
+                        </button>
+                    </div>
+                </form>
 
-<nav>
-    <ul class="pagination">
-        <li th:each="v,item : ${pages}" class="page-item">
-            <a th:href="@{/patients(page=${item.patients},keyword=${keyword})}"
-               th:text="${item.patients}"
-               th:class="${(currentPage == item.patients ? 'btn btn-info ms-1' : 'btn btn-outline ms-1'}">)}"
-               class="page-link"></a>
-        </li>
-    </ul>
-</nav>
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover">
+                        <thead class="table-light">
+                        <tr>
+                            <th>ID</th>
+                            <th>Nom</th>
+                            <th>Date de Naissance</th>
+                            <th>Score</th>
+                            <th>Malade</th>
+                            <th colspan="2">Actions</th>
+                        </tr>
+                        </thead>
+                        <tbody>
+                        <tr th:each="p:${listPatients}">
+                            <td th:text="${p.id}"></td>
+                            <td th:text="${p.nom}"></td>
+                            <td th:text="${#dates.format(p.dateNaissance, 'dd/MM/yyyy')}"></td>
+                            <td th:text="${p.score}"></td>
+                            <td>
+                                <span th:if="${p.malade}" class="badge bg-danger">Oui</span>
+                                <span th:unless="${p.malade}" class="badge bg-success">Non</span>
+                            </td>
+                            <td>
+                                <a class="btn btn-sm btn-primary" th:href="@{editPatient(id=${p.id})}">
+                                    <i class="bi bi-pencil"></i> Modifier
+                                </a>
+                            </td>
+                            <td>
+                                <a class="btn btn-sm btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce patient?')"
+                                   th:href="@{deletePatient(id=${p.id}, keyword=${keyword}, page=${currentPage})}">
+                                    <i class="bi bi-trash"></i> Supprimer
+                                </a>
+                            </td>
+                        </tr>
+                        <tr th:if="${listPatients.isEmpty()}">
+                            <td colspan="7" class="text-center">Aucun patient trouvé</td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
 
-<script th:src="@{/webjars/bootstrap/5.3.3/js/bootstrap.bundle.min.js}"></script>
+                <!-- Pagination -->
+                <nav th:if="${totalPages > 1}">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled' : ''">
+                            <a class="page-link" th:href="@{index(page=${currentPage-1}, keyword=${keyword})}">&laquo;</a>
+                        </li>
+                        <li class="page-item" th:each="page : ${pages}" th:classappend="${page == currentPage} ? 'active' : ''">
+                            <a class="page-link" th:href="@{index(page=${page}, keyword=${keyword})}" th:text="${page + 1}"></a>
+                        </li>
+                        <li class="page-item" th:classappend="${currentPage == totalPages - 1} ? 'disabled' : ''">
+                            <a class="page-link" th:href="@{index(page=${currentPage+1}, keyword=${keyword})}">&raquo;</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    </div>
+</div>
 </body>
 </html>
