@@ -7,10 +7,39 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css">
     <title>Gestion des Patients</title>
+    <style>
+        .user-info {
+            background-color: #f8f9fa;
+            padding: 10px 15px;
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+        .user-info span {
+            font-weight: 500;
+        }
+    </style>
 </head>
 <body>
 <div layout:fragment="content">
     <div class="p-3">
+        <div class="user-info d-flex align-items-center justify-content-between bg-light p-3 rounded shadow-sm mb-4">
+            <div class="d-flex align-items-center">
+                <i class="bi bi-person-fill text-primary fs-4 me-2"></i>
+                <div>
+                    <small class="text-muted">Connecté en tant que</small>
+                    <div class="fw-bold" th:text="${#authentication.name}">admin</div>
+                </div>
+            </div>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="btn btn-danger">
+                    <i class="bi bi-box-arrow-right me-1"></i> Déconnexion
+                </button>
+            </form>
+        </div>
+
         <div class="card">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <h5 class="mb-0">Liste des patients</h5>
@@ -19,7 +48,7 @@
                 </a>
             </div>
             <div class="card-body">
-                <form method="get" th:action="@{/patients}" class="mb-4">
+                <form method="get" th:action="@{/user/patients}" class="mb-4">
                     <div class="input-group">
                         <input type="text" class="form-control" name="keyword" th:value="${keyword}" placeholder="Rechercher...">
                         <input type="hidden" name="size" th:value="${size}">
@@ -34,7 +63,7 @@
                         <label>Items par page:</label>
                         <select class="form-select" onchange="location = this.value;">
                             <option th:each="s : ${itemsPerPageList}"
-                                    th:value="@{/patients(page=${currentPage}, size=${s}, keyword=${keyword})}"
+                                    th:value="@{/user/patients(page=${currentPage}, size=${s}, keyword=${keyword})}"
                                     th:selected="${s == size}"
                                     th:text="${s}"></option>
                         </select>
@@ -66,14 +95,14 @@
                                 <span th:if="${p.malade}" class="badge bg-danger">Oui</span>
                                 <span th:unless="${p.malade}" class="badge bg-success">Non</span>
                             </td>
-                            <td>
-                                <a class="btn btn-sm btn-primary" th:href="@{/editPatient(id=${p.id})}">
+                            <td th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
+                                <a class="btn btn-sm btn-primary" th:href="@{/admin/editPatient(id=${p.id})}">
                                     <i class="bi bi-pencil"></i> Modifier
                                 </a>
                             </td>
-                            <td>
+                            <td th:if="${#authorization.expression('hasRole(''ADMIN'')')}">
                                 <a class="btn btn-sm btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce patient?')"
-                                   th:href="@{/deletePatient(id=${p.id}, keyword=${keyword}, page=${currentPage}, size=${size})}">
+                                   th:href="@{/admin/deletePatient(id=${p.id}, keyword=${keyword}, page=${currentPage}, size=${size})}">
                                     <i class="bi bi-trash"></i> Supprimer
                                 </a>
                             </td>
@@ -85,16 +114,15 @@
                     </table>
                 </div>
 
-                <!-- Pagination améliorée -->
                 <nav th:if="${pages.length > 1}">
                     <ul class="pagination justify-content-center">
                         <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled' : ''">
-                            <a class="page-link" th:href="@{/patients(page=0, size=${size}, keyword=${keyword})}">
+                            <a class="page-link" th:href="@{/user/patients(page=0, size=${size}, keyword=${keyword})}">
                                 <i class="bi bi-chevron-double-left"></i>
                             </a>
                         </li>
                         <li class="page-item" th:classappend="${currentPage == 0} ? 'disabled' : ''">
-                            <a class="page-link" th:href="@{/patients(page=${currentPage - 1}, size=${size}, keyword=${keyword})}">
+                            <a class="page-link" th:href="@{/user/patients(page=${currentPage - 1}, size=${size}, keyword=${keyword})}">
                                 <i class="bi bi-chevron-left"></i>
                             </a>
                         </li>
@@ -102,18 +130,18 @@
                         <li th:each="page,status:${pages}" class="page-item"
                             th:classappend="${status.index == currentPage} ? 'active' : ''">
                             <a class="page-link"
-                               th:href="@{/patients(page=${status.index}, size=${size}, keyword=${keyword})}"
+                               th:href="@{/user/patients(page=${status.index}, size=${size}, keyword=${keyword})}"
                                th:text="${status.index + 1}">
                             </a>
                         </li>
 
                         <li class="page-item" th:classappend="${currentPage == pages.length - 1} ? 'disabled' : ''">
-                            <a class="page-link" th:href="@{/patients(page=${currentPage + 1}, size=${size}, keyword=${keyword})}">
+                            <a class="page-link" th:href="@{/user/patients(page=${currentPage + 1}, size=${size}, keyword=${keyword})}">
                                 <i class="bi bi-chevron-right"></i>
                             </a>
                         </li>
                         <li class="page-item" th:classappend="${currentPage == pages.length - 1} ? 'disabled' : ''">
-                            <a class="page-link" th:href="@{/patients(page=${pages.length - 1}, size=${size}, keyword=${keyword})}">
+                            <a class="page-link" th:href="@{/user/patients(page=${pages.length - 1}, size=${size}, keyword=${keyword})}">
                                 <i class="bi bi-chevron-double-right"></i>
                             </a>
                         </li>

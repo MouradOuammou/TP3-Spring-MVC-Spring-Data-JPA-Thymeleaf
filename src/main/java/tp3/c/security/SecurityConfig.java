@@ -3,7 +3,9 @@ package tp3.c.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.config.Customizer;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.core.userdetails.User;
@@ -29,7 +31,7 @@ public class SecurityConfig {
                 .roles("USER")
                 .build();
 
-        UserDetails user3 = User.withUsername("user3")
+        UserDetails user3 = User.withUsername("admin")
                 .password(encoder.encode("1"))
                 .roles("ADMIN")
                 .build();
@@ -41,7 +43,13 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .authorizeHttpRequests((authorize) -> authorize
+                        .requestMatchers("/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/user/**").hasAnyRole("USER")
+                        .requestMatchers("/login").permitAll()
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(exception -> exception
+                        .accessDeniedPage("/noteAuthorize")
                 )
                 .httpBasic(Customizer.withDefaults())
                 .formLogin(form -> form
@@ -56,6 +64,8 @@ public class SecurityConfig {
 
         return http.build();
     }
+
+
 
 
 

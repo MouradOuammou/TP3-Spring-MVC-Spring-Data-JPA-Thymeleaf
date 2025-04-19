@@ -3,6 +3,8 @@ package tp3.c.web;
 import lombok.AllArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -17,6 +19,8 @@ import java.util.List;
 
 @Controller
 @AllArgsConstructor
+@EnableGlobalMethodSecurity(prePostEnabled = true)
+
 public class PatientController {
 
     private final PatientRepository patientRepository;
@@ -38,7 +42,8 @@ public class PatientController {
         return "patients";
     }
 
-    @GetMapping("/deletePatient")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/admin/deletePatient")
     public String deletePatient(@RequestParam(name = "id") Long id,
                                 @RequestParam(name = "keyword", defaultValue = "") String keyword,
                                 @RequestParam(name = "page", defaultValue = "0") int page,
@@ -47,20 +52,22 @@ public class PatientController {
         return "redirect:/patients?page=" + page + "&keyword=" + keyword + "&size=" + size;
     }
 
-    @GetMapping("/formPatient")
+    @GetMapping("/admin/formPatient")
     public String formPatient(Model model) {
         model.addAttribute("patient", new Patient());
         return "formPatient";
     }
 
-    @PostMapping("/savePatient")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @PostMapping("/admin/savePatient")
     public String savePatient(@Valid Patient patient, BindingResult bindingResult) {
         if (bindingResult.hasErrors()) return "formPatient";
         patientRepository.save(patient);
         return "redirect:/patients";
     }
 
-    @GetMapping("/editPatient")
+    @PreAuthorize("hasRole('ROLE_ADMIN')")
+    @GetMapping("/admin/editPatient")
     public String editPatient(@RequestParam(name = "id") Long id, Model model) {
         Patient patient = patientRepository.findById(id).get();
         model.addAttribute("patient", patient);
