@@ -66,4 +66,14 @@ public class PatientController {
         model.addAttribute("patient", patient);
         return "editPatient";
     }
+    @GetMapping("/login")
+    public String login(Model model) {
+        return "login";
+    }
+
+    @GetMapping("/login-error")
+    public String loginError(Model model) {
+        model.addAttribute("error", true);
+        return "login";
+    }
 }
